@@ -1,7 +1,9 @@
 import pandas as pd
-import numpy as np
 import streamlit as st
 import gpt
+import tools
+from streamlit_option_menu import option_menu
+
 
 @st.cache_data(show_spinner='Downloading')
 def load_data(src):
@@ -14,7 +16,7 @@ def load_data(src):
 
 
 @st.cache_data(show_spinner='Analyzing')
-def general_analysis(s):
+def general_analysis(_, s):
     resp = gpt.chat(gpt.general_analysis_prompt(s))
     content, _, op = gpt.format(resp)
     fig = eval(op)
@@ -24,11 +26,28 @@ def general_analysis(s):
     st.pyplot(fig=fig)
 
 
-st.title('Interaction Data Analysis')
-url = st.text_input('Please enter the URL of data file.')
-st.text('https://people.sc.fsu.edu/~jburkardt/data/csv/homes.csv')
-df, df_str = load_data(url)
-if df_str is not None:
-    if st.button('General Analysis'):
-        general_analysis(df_str)
-        st.text_input('Enter commands for further analysis.')
+if 'chats' not in st.session_state:
+    st.session_state['chats'] = []
+elif len(st.session_state['chats']) > 0:
+    st.session_state['selected'] = st.session_state.chats[0]
+
+with st.sidebar:
+    if st.button('Add', use_container_width=True):
+        st.session_state['chats'] =[f'Analysis {tools.get_new_idx(st.session_state.chats)}'] + st.session_state['chats']
+        st.session_state['selected'] = st.session_state.chats[0]
+    if len(st.session_state.chats) > 0:
+        selected = option_menu(None, st.session_state.chats, icons=[None for _ in st.session_state.chats])
+        st.session_state['selected'] = selected
+
+
+if 'selected' in st.session_state:
+    st.title(st.session_state.selected)
+    url = st.text_input('Please enter the URL of data file.')
+    st.text('https://people.sc.fsu.edu/~jburkardt/data/csv/homes.csv')
+    df, df_str = load_data(url)
+    if df_str is not None:
+        if st.button('General Analysis'):
+            general_analysis(st.session_state.selected, df_str)
+            # for c in st.session_state['chats']:
+            #     st.write('Hi')
+            st.text_input('Enter commands for further analysis.')
