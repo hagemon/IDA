@@ -3,7 +3,7 @@ import streamlit as st
 import gpt
 import tools
 from streamlit_option_menu import option_menu
-
+import conn
 
 @st.cache_data(show_spinner='Downloading')
 def load_data(src):
@@ -24,7 +24,7 @@ def general_analysis(_, s):
     for c in content.split('\n'):
         st.write(c)
     st.pyplot(fig=fig)
-
+    
 
 if 'chats' not in st.session_state:
     st.session_state['chats'] = []
