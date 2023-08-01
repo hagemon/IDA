@@ -3,7 +3,8 @@ import streamlit as st
 import gpt
 import tools
 from streamlit_option_menu import option_menu
-import conn
+import fetch
+
 
 @st.cache_data(show_spinner='Downloading')
 def load_data(src):
@@ -24,30 +25,31 @@ def general_analysis(_, s):
     for c in content.split('\n'):
         st.write(c)
     st.pyplot(fig=fig)
-    
 
-if 'chats' not in st.session_state:
-    st.session_state['chats'] = []
-elif len(st.session_state['chats']) > 0:
-    st.session_state['selected'] = st.session_state.chats[0]
+
+chats = fetch.get_chats()
+if len(chats) > 0:
+    st.session_state['idx'] = 0
 
 with st.sidebar:
     if st.button('Add', use_container_width=True):
-        st.session_state['chats'] =[f'Analysis {tools.get_new_idx(st.session_state.chats)}'] + st.session_state['chats']
-        st.session_state['selected'] = st.session_state.chats[0]
-    if len(st.session_state.chats) > 0:
-        selected = option_menu(None, st.session_state.chats, icons=[None for _ in st.session_state.chats])
-        st.session_state['selected'] = selected
+        fetch.add_chat()
+        chats = fetch.get_chats()
+        st.session_state['idx'] = 0
+    if len(chats) > 0:
+        option_menu(None, [c.title for c in chats],
+                    manual_select=st.session_state.idx)
 
 
-if 'selected' in st.session_state:
-    st.title(st.session_state.selected)
+if 'idx' in st.session_state:
+    chat = chats[st.session_state.idx]
+    st.title(chat.title)
     url = st.text_input('Please enter the URL of data file.')
-    st.text('https://people.sc.fsu.edu/~jburkardt/data/csv/homes.csv')
+    st.text(chat.url)
     df, df_str = load_data(url)
     if df_str is not None:
         if st.button('General Analysis'):
             general_analysis(st.session_state.selected, df_str)
-            # for c in st.session_state['chats']:
-            #     st.write('Hi')
+            for c in chat.contents:
+                st.write(c.content)
             st.text_input('Enter commands for further analysis.')

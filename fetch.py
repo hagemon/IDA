@@ -1,25 +1,20 @@
 import conn
+from chat import Chat, ChatContent
 
 
 def get_chats():
-    conn.run_executes(['''
-        create table if not exists chats (
-            id uuid PRIMARY KEY,
-            title varchar(255) NOT NULL,
-        );
-        ''','''
-        create table if not exists chat_contents (
-        
-        )
-    '''])
-    chats = conn.run_query('select * from chats')
+    chats = conn.run_query()
     return chats
 
 
-def get_content(chat_id):
-    content = conn.run_query(f'select * from chat_content where id = {chat_id}')
-    return content
+def add_chat():
+    idx = conn.get_chat_index()
+    title = f'Analysis {idx}'
+    chat = Chat(
+        title=title, url='https://people.sc.fsu.edu/~jburkardt/data/csv/homes.csv')
+    conn.add_chat(chat=chat)
 
 
 if __name__ == '__main__':
-    print(get_chats())
+    add_chat()
+    add_chat()
