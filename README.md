@@ -8,6 +8,14 @@ Further analysis are under construction.
 
 ## Usage
 
+### Pre-requirements
+
+```bash
+pip install requirements.txt
+```
+
+### LLM Configuration
+
 Add an `conf.json` file with following format:
 
 ```json
@@ -19,13 +27,29 @@ Add an `conf.json` file with following format:
 }
 ```
 
-You need to install [Streamlit](https://streamlit.io):
+### Database Configuration
+
+Using `docker` or `orbstack` and run:
 
 ```bash
-pip install streamlit
+docker pull postgres
+docker run --name postgres -e POSTGRES_PASSWORD=PASSWORD -d postgres
 ```
 
-then run
+then create `.streamlit/secret.toml` file:
+
+```toml
+# .streamlit/secrets.toml
+
+[postgres]
+host = "localhost"
+port = 5432
+dbname = "dbname"
+user = "USERNAME"
+password = "PASSWORD"
+```
+
+### Run
 
 ```bash
 streamlit run main.py

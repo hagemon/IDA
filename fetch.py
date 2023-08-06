@@ -11,10 +11,21 @@ def add_chat():
     idx = conn.get_chat_index()
     title = f'Analysis {idx}'
     chat = Chat(
-        title=title, url='https://people.sc.fsu.edu/~jburkardt/data/csv/homes.csv')
+        title=title, url='')
     conn.add_chat(chat=chat)
 
 
+def add_url(chat, url):
+    conn.update_chat(chat, url)
+
+
+def get_contents(chat):
+    return conn.get_chat_content(chat=chat)
+
+
+def add_content():
+    pass
+
+
 if __name__ == '__main__':
-    add_chat()
-    add_chat()
+    print(get_chats())

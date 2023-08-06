@@ -20,7 +20,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-@st.cache_data(ttl=600)
+# @st.cache_data(ttl=600)
 def run_query():
     return session.query(Chat).order_by(Chat.create_datetime.desc()).all()
 
@@ -33,6 +33,23 @@ def add_chat(chat):
 
 # @st.cache_data(ttl=600)
 def get_chat_index():
-    title = session.query(func.max(Chat.title)).filter(Chat.title.op('~')('^Analysis [1-9]*$')).scalar()
-    max_x = int(title.split(' ')[-1])
-    return max_x+1
+    titles = (
+        session.query(
+            func.cast(
+                func.regexp_replace(Chat.title, "^Analysis ([0-9]+)$", "\\1"), Integer
+            )
+        )
+        .filter(Chat.title.op("~")("^Analysis [0-9]*$"))
+        .all()
+    )
+    max_x = max([t[0] for t in titles]) if titles else 0
+    return max_x + 1
+
+
+def get_chat_content(chat):
+    print(chat.contents)
+
+
+def update_chat(chat, url):
+    chat.url = url
+    session.commit()
