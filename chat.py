@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, TIMESTAMP, Integer, text
+from sqlalchemy import Column, ForeignKey, String, TIMESTAMP, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -26,6 +26,14 @@ class Chat(Base):
         "ChatContent", back_populates="chat", order_by="ChatContent.num.desc()"
     )
 
+    @property
+    def empty(self):
+        return len(self.contents) == 0
+
+    @property
+    def general(self):
+        return self.contents[0] if not self.empty else None
+
     def __repr__(self) -> str:
         return f"Title: {self.title} Create Time: {self.create_datetime}"
 
@@ -33,9 +41,18 @@ class Chat(Base):
 class ChatContent(Base):
     __tablename__ = "chat_contents"  # table name in the database
 
-    id = Column(UUID, ForeignKey("chats.id"), primary_key=True)
-    num = Column(Integer, primary_key=True)
+    id = Column(UUID(as_uuid=True), ForeignKey("chats.id"), primary_key=True)
+    num = Column(Integer, primary_key=True, default=0)
     content = Column(String)
     operation = Column(String)
+    is_general = Column(Boolean, default=False)
 
     chat = relationship("Chat", back_populates="contents")
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self.chat:
+            self.num = len(self.chat.contents) + 1
+
+    def __repr__(self) -> str:
+        return f"id: {self.id} num: {self.num} operation: {self.operation}"

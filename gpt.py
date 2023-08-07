@@ -18,7 +18,7 @@ def general_analysis_prompt(src):
 
 Please check this data and do basic analysis, feed back in following json format:
 {{
-    \"content\": give some analysis about given data on their values, statistic, relations or trends, note that you must seperate each sentences with `\\n`.
+    \"content\": give some analysis about given data on their values, statistic, relations or trends.
     \"figure_type\": choose a figure type to supports analysis, with the support from `kind` parameter in `df.plot` function.
     \"operation\": the single line code that return `figure` object using `df.plot.figure`, you can add additional columns for analysing before drawing. Make sure the code could run withour error.
 }}

@@ -11,7 +11,7 @@ def load_data(src):
         try:
             x = pd.read_csv(src)
         except Exception:
-            st.error('Something wrong with the given url.')
+            st.error("Something wrong with the given url.")
             return None, None
         print(x.columns)
         x.columns = [c.replace('"', "").strip() for c in x.columns]
@@ -21,19 +21,24 @@ def load_data(src):
 
 
 @st.cache_data(show_spinner="Analyzing")
-def general_analysis(_, s):
-    resp = gpt.chat(gpt.general_analysis_prompt(s))
-    content, _, op = gpt.format(resp)
+def general_analysis(_chat, s):
+    if _chat.empty:
+        resp = gpt.chat(gpt.general_analysis_prompt(s))
+        content, _, op = gpt.format(resp)
+    else:
+        content = _chat.general.content
+        op = _chat.general.operation
     fig = eval(op)
     st.subheader("General Analysis")
     for c in content.split("\n"):
         st.write(c)
     st.pyplot(fig=fig)
-    change_analyse_status(False)
+    if _chat.empty:
+        fetch.add_content(_chat, content, op, gen=True)
 
 
-def change_analyse_status(flag):
-    st.session_state["analyze"] = flag
+def enable_gen_btn(flag):
+    st.session_state["gen_btn"] = flag
 
 
 chats = fetch.get_chats()
@@ -50,22 +55,26 @@ with st.sidebar:
         st.session_state["idx"] = idx
 
 
-change_analyse_status(False)
 if "idx" in st.session_state:
     chat = chats[st.session_state.idx]
+    enable_gen_btn(True)
     st.title(chat.title)
-    url = st.text_input("Please enter the URL of data file.", value=chat.url, key=chat.id)
+    url = st.text_input(
+        "Please enter the URL of data file.", value=chat.url, key=chat.id
+    )
     if url != chat.url:
         fetch.add_url(chat, url)
     df, df_str = load_data(url)
     if df_str is not None:
         if st.button(
             "General Analysis",
-            on_click=change_analyse_status,
-            args=[True],
-            disabled=st.session_state.analyze,
-        ):
-            general_analysis(st.session_state.idx, df_str)
+            disabled=st.session_state.gen_btn,
+        ) and chat.empty:
+            enable_gen_btn(False)
+            general_analysis(chat, df_str)
+        else:
             for c in chat.contents:
+                fig = eval(c.operation)
                 st.write(c.content)
-            st.text_input("Enter commands for further analysis.")
+                st.pyplot(fig=fig)
+        st.text_input("Enter commands for further analysis.")
