@@ -31,8 +31,8 @@ def add_url(chat, url):
     conn.update_chat(chat, url)
 
 
-def add_content(chat, content, operation, gen=False):
-    chat_content = ChatContent(chat=chat, content=content, operation=operation, is_general=gen)
+def add_content(chat, content, draw_op, transform_op, title='General', gen=False):
+    chat_content = ChatContent(chat=chat, content=content, draw_op=draw_op, transform_op=transform_op, is_general=gen, title=title)
     print(chat_content)
     conn.add_chat_content(chat_content)
 

@@ -23,7 +23,7 @@ class Chat(Base):
     url = Column(String)
 
     contents = relationship(
-        "ChatContent", back_populates="chat", order_by="ChatContent.num.desc()"
+        "ChatContent", back_populates="chat", order_by="ChatContent.num.asc()"
     )
 
     @property
@@ -33,6 +33,10 @@ class Chat(Base):
     @property
     def general(self):
         return self.contents[0] if not self.empty else None
+
+    @property
+    def n_contents(self):
+        return len(self.contents)
 
     def __repr__(self) -> str:
         return f"Title: {self.title} Create Time: {self.create_datetime}"
@@ -44,8 +48,10 @@ class ChatContent(Base):
     id = Column(UUID(as_uuid=True), ForeignKey("chats.id"), primary_key=True)
     num = Column(Integer, primary_key=True, default=0)
     content = Column(String)
-    operation = Column(String)
+    transform_op = Column(String)
+    draw_op = Column(String)
     is_general = Column(Boolean, default=False)
+    title = Column(String)
 
     chat = relationship("Chat", back_populates="contents")
 
@@ -55,4 +61,4 @@ class ChatContent(Base):
             self.num = len(self.chat.contents) + 1
 
     def __repr__(self) -> str:
-        return f"id: {self.id} num: {self.num} operation: {self.operation}"
+        return f"id: {self.id} num: {self.num} operation: {self.transform_op}"

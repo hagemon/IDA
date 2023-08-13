@@ -2,6 +2,9 @@ import openai
 from tools import converter
 import json
 
+"""
+Basic operations
+"""
 
 with open("conf.json") as f:
     obj = json.load(f)
@@ -11,23 +14,17 @@ with open("conf.json") as f:
     openai.api_key = obj["api_key"]
 
 
-def general_analysis_prompt(src):
-    prompt = """Here is a csv file string:
-
-{}
-
-Please check this data and do basic analysis, feed back in following json format:
-{{
-    \"content\": give some analysis about given data on their values, statistic, relations or trends.
-    \"figure_type\": choose a figure type to supports analysis, with the support from `kind` parameter in `df.plot` function.
-    \"operation\": the single line code that return `figure` object using `df.plot.figure`, you can add additional columns for analysing before drawing. Make sure the code could run withour error.
-}}
-Note that you must only return the json text without any other information!
-""".format(
-        src
-    )
-    print(prompt)
-    return prompt
+def format(resp):
+    print(resp)
+    obj = converter(resp)
+    content = obj["content"]
+    figure_type = obj["figure_type"]
+    draw_op = obj["draw_op"]
+    transform_op = obj["transform_op"]
+    if not draw_op.endswith("figure"):
+        draw_op = draw_op + ".figure"
+    title = obj["title"] if "title" in obj else "General"
+    return content, figure_type, draw_op, transform_op, title
 
 
 def chat(content):
@@ -49,15 +46,48 @@ def chat(content):
     return response["choices"][0]["message"]["content"]
 
 
-def format(resp):
-    print(resp)
-    obj = converter(resp)
-    content = obj["content"]
-    figure_type = obj["figure_type"]
-    op = obj["operation"]
-    if not op.endswith("figure"):
-        op = op + ".figure"
-    return content, figure_type, op
+"""
+Prompt
+"""
+
+
+def general_analysis_prompt(src):
+    prompt = """Here is a csv file string:
+
+{}
+
+Please check this data and do basic analysis, feed back in following json format:
+{{
+    \"content\": give some analysis about given data on their statistic, relations or trends.
+    \"figure_type\": choose a figure type to supports analysis, with the support from `kind` parameter in `df.plot` function.
+    \"transform_op\": a single line code that having some inplace operation on dataframe `df`, which must supports your analysis. Make sure the code could run without error.
+    \"draw_op\": a single line code that returns `figure` object using `df.plot().figure`, the figure can use columns that added in `transform_op`. Make sure the code could run without error.
+}}
+Note that you must only return the json text without any other information!
+""".format(
+        src
+    )
+    print(prompt)
+    return prompt
+
+
+def followup_analysis_prompt(src, cmd):
+    prompt = f"""Here is a csv file string:
+
+{src}
+
+Please check this data and do basic analysis, feed back in following json format:
+{{
+    \"content\": following this command {cmd}, and give more specific analysis about given data on their values, statistic, relations or trends.
+    \"figure_type\": choose a figure type to supports analysis, with the support from `kind` parameter in `df.plot` function.
+    \"draw_op\": the single line code that return `figure` object using `df.plot.figure`, you can add additional columns for analysing before drawing. Make sure the code could run without error.
+    \"transform_op\": the single line code that return `figure` object using `df.plot.figure`, you can add additional columns for analysing before drawing. If there is no neccessity, please return `pass`. Make sure the code could run without error.
+    \"title\": a clear title for this analysis.
+}}
+Note that you must only return the json text without any other information!
+"""
+    print(prompt)
+    return prompt
 
 
 if __name__ == "__main__":
