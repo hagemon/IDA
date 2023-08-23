@@ -77,3 +77,13 @@ Updates
 def update_chat(chat, url):
     chat.url = url
     session.commit()
+
+
+"""
+Deletes
+"""
+
+
+def delete_chat(chat):
+    session.delete(chat)
+    session.commit()

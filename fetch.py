@@ -37,5 +37,13 @@ def add_content(chat, content, draw_op, transform_op, title='General', gen=False
     conn.add_chat_content(chat_content)
 
 
+"""
+Delete
+"""
+
+def delete_chat(chat):
+    conn.delete_chat(chat)
+
 if __name__ == "__main__":
     print(get_chats())
+
