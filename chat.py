@@ -65,30 +65,3 @@ class ChatContent(Base):
 
     def __repr__(self) -> str:
         return f"id: {self.id} num: {self.num} operation: {self.transform_op}"
-
-
-class ChatList:
-    def __init__(self, chats) -> None:
-        self.chats = chats
-        self.refresh_idx()
-
-    def refresh_idx(self):
-        if self.chats and len(self.chats) > 0:
-            self.idx = 0
-        else:
-            self.idx = None
-
-    def set_idx(self, idx):
-        self.idx = idx
-
-    def refresh_chats(self, chats):
-        self.chats = chats
-        self.refresh_chats()
-
-    @property
-    def idx(self):
-        return self.idx
-    
-    @property
-    def selected(self):
-        return self.chats[self.idx]

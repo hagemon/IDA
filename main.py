@@ -3,7 +3,7 @@ import streamlit as st
 import gpt
 import streamlit_antd_components as sac
 import fetch
-from chat import ChatList
+from chat_list import ChatList
 
 
 @st.cache_data(show_spinner="Downloading")
@@ -77,34 +77,25 @@ def submit(chat_id):
     st.session_state["widget"] = ""
 
 
-chats = fetch.get_chats()
-# chat_list = ChatList(chats=chats)
-if len(chats) > 0:
-    st.session_state["idx"] = 0
+chat_list = ChatList(chats=fetch.get_chats())
 
 with st.sidebar:
     st.title("Analysis")
     left, right = st.columns(2)
     with left:
         if st.button("Add", use_container_width=True):
-            fetch.add_chat()
-            chats = fetch.get_chats()
-            st.session_state["idx"] = 0
+            chat_list.add_chat()
     with right:
         if st.button("Delete", use_container_width=True, type="primary"):
-            chat = chats[st.session_state.idx]
-            print(st.session_state.idx)
-            print(chat)
-            # fetch.delete_chat(chat)
-            chats = fetch.get_chats()
-            st.session_state["idx"] = 0
-    if len(chats) > 0:
-        idx = sac.menu([sac.MenuItem(c.title) for c in chats], return_index=True)
-        st.session_state["idx"] = idx
-        print('select',st.session_state.idx)
+            chat_list.delete_selected_chat()
+    if not chat_list.empty:
+        idx = sac.menu(
+            [sac.MenuItem(c.title) for c in chat_list.chats], return_index=True
+        )
+        chat_list.select_index(idx=idx)
 
-if "idx" in st.session_state:
-    chat = chats[st.session_state.idx]
+if not chat_list.empty:
+    chat = chat_list.selected_chat
     enable_gen_btn(True)
     st.title(chat.title)
     url = st.text_input(
