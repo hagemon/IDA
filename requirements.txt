@@ -1,4 +1,5 @@
-numpy==1.22.3
 openai==0.27.8
 pandas==2.0.3
+SQLAlchemy==1.4.42
 streamlit==1.24.1
+streamlit_antd_components==0.1.11
